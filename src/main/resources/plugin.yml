@@ -1,0 +1,32 @@
+name: ElytraDogfightsRedux
+version: '1.0-SNAPSHOT'
+main: net.sudologic.elytraDogfightsRedux.ElytraDogfightsRedux
+api-version: '1.21'
+author: sudologic
+description: A plugin for managing elytra dogfight arenas and matches
+
+commands:
+  elytradogfights:
+    description: Main command for Elytra Dogfights plugin
+    usage: |
+      /<command> map add <name> - Add a new map
+      /<command> map remove <name> - Remove a map
+      /<command> map edit <name> <property> [value] - Edit map properties
+      /<command> play <mapName> [playerName] - Queue for a map
+    permission: elytradogfights.admin
+    permission-message: "§cYou don't have permission to use this command!"
+    aliases: [edf, dogfight]
+
+permissions:
+  elytradogfights.*:
+    description: Gives access to all ElytraDogfights commands
+    default: op
+    children:
+      elytradogfights.admin: true
+      elytradogfights.play: true
+  elytradogfights.admin:
+    description: Allows management of maps and plugin configuration
+    default: op
+  elytradogfights.play:
+    description: Allows participation in dogfight matches
+    default: true
