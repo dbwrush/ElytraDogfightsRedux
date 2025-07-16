@@ -97,14 +97,9 @@ public class Session {
         }
 
         // Update scoreboards for all players in the session
-        if (removed) {
-            updateSessionScoreboards();
-        }
-
-        return removed;
-        // Update scoreboards for all players in the session
         updateSessionScoreboards();
 
+        return removed;
     }
 
     private void startCountdown() {

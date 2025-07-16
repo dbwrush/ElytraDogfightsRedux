@@ -3,13 +3,13 @@ package net.sudologic.elytraDogfightsRedux;
 import net.sudologic.elytraDogfightsRedux.config.ConfigManager;
 import net.sudologic.elytraDogfightsRedux.game.SessionManager;
 import net.sudologic.elytraDogfightsRedux.game.GameEventListener;
-import net.sudologic.elytraDogfightsRedux.game.ScoreboardManager;
+import net.sudologic.elytraDogfightsRedux.game.CustomScoreboard;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ElytraDogfightsRedux extends JavaPlugin {
 
     private ConfigManager configManager;
-    private ScoreboardManager scoreboardManager;
+    private CustomScoreboard scoreboardManager;
 
     @Override
     public void onEnable() {
@@ -17,7 +17,7 @@ public final class ElytraDogfightsRedux extends JavaPlugin {
         configManager = new ConfigManager(this);
 
         // Initialize scoreboard manager
-        scoreboardManager = new ScoreboardManager(this);
+        scoreboardManager = new CustomScoreboard(this);
 
         // Register event listener for player deaths
         getServer().getPluginManager().registerEvents(new GameEventListener(this), this);
@@ -46,7 +46,7 @@ public final class ElytraDogfightsRedux extends JavaPlugin {
         return configManager.getSessionManager();
     }
 
-    public ScoreboardManager getScoreboardManager() {
+    public CustomScoreboard getScoreboardManager() {
         return scoreboardManager;
     }
 }

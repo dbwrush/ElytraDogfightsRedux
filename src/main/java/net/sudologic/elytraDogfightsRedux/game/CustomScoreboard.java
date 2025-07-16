@@ -10,12 +10,12 @@ import org.bukkit.scoreboard.*;
 
 import java.util.UUID;
 
-public class ScoreboardManager {
+public class CustomScoreboard {
     private final ElytraDogfightsRedux plugin;
     private final ConfigManager configManager;
     private final SessionManager sessionManager;
 
-    public ScoreboardManager(ElytraDogfightsRedux plugin) {
+    public CustomScoreboard(ElytraDogfightsRedux plugin) {
         this.plugin = plugin;
         this.configManager = plugin.getConfigManager();
         this.sessionManager = plugin.getSessionManager();
@@ -90,7 +90,9 @@ public class ScoreboardManager {
         objective.getScore(ChatColor.RESET + "  ").setScore(line--);
 
         // Active sessions count
-        int activeSessions = sessionManager.getActiveSessions().size();
+        int activeSessions = (int) sessionManager.getAllSessions().stream()
+            .filter(session -> session.getState() == SessionState.ACTIVE)
+            .count();
         objective.getScore(ChatColor.AQUA + "Active Games: " + ChatColor.WHITE + activeSessions).setScore(line--);
 
         // Empty line

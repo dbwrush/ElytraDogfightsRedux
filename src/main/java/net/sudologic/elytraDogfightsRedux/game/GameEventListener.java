@@ -13,6 +13,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import net.kyori.adventure.text.Component;
 
+import java.util.UUID;
+
 public class GameEventListener implements Listener {
     private final ElytraDogfightsRedux plugin;
 
