@@ -49,6 +49,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
             return handleMapCommand(sender, args);
         } else if (args[0].equalsIgnoreCase("play")) {
             return handlePlayCommand(sender, args);
+        } else if (args[0].equalsIgnoreCase("config")) {
+            return handleConfigCommand(sender, args);
         }
 
         sender.sendMessage(Component.text("§cUnknown subcommand. Use /elytradogfights map ... or /elytradogfights play ..."));
@@ -297,6 +299,36 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleConfigCommand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(Component.text("§eUsage: /elytradogfights config <servername> [value]"));
+            return true;
+        }
+
+        String configOption = args[1].toLowerCase();
+
+        if (configOption.equals("servername")) {
+            if (args.length < 3) {
+                // Show current server name
+                String currentName = plugin.getScoreboardManager().getServerName();
+                sender.sendMessage(Component.text("§eCurrent server name: §f" + currentName));
+                return true;
+            }
+
+            // Set new server name
+            String newName = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            plugin.getScoreboardManager().setServerName(newName);
+            sender.sendMessage(Component.text("§aServer name updated to: §f" + newName));
+
+            // Update all scoreboards to reflect the change
+            plugin.getScoreboardManager().updateAllScoreboards();
+            return true;
+        }
+
+        sender.sendMessage(Component.text("§cUnknown config option. Available: servername"));
+        return true;
+    }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         List<String> completions = new ArrayList<>();
@@ -304,17 +336,22 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             completions.add("map");
             completions.add("play");
+            completions.add("config");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("map")) {
                 completions.addAll(Arrays.asList("add", "remove", "edit"));
             } else if (args[0].equalsIgnoreCase("play")) {
                 completions.addAll(configManager.getMaps().stream().map(m -> m.getName()).collect(Collectors.toList()));
+            } else if (args[0].equalsIgnoreCase("config")) {
+                completions.add("servername");
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("map") && (args[1].equalsIgnoreCase("remove") || args[1].equalsIgnoreCase("edit"))) {
                 completions.addAll(configManager.getMaps().stream().map(m -> m.getName()).collect(Collectors.toList()));
             } else if (args[0].equalsIgnoreCase("play")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+            } else if (args[0].equalsIgnoreCase("config") && args[1].equalsIgnoreCase("servername")) {
+                completions.add("<new_server_name>");
             }
         } else if (args.length == 4 && args[0].equalsIgnoreCase("map") && args[1].equalsIgnoreCase("edit")) {
             completions.addAll(Arrays.asList("teamconfig", "corner1", "corner2", "name", "spawn"));

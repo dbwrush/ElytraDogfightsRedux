@@ -5,6 +5,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.Bukkit;
@@ -16,6 +18,40 @@ public class GameEventListener implements Listener {
 
     public GameEventListener(ElytraDogfightsRedux plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+
+        // Update scoreboard for the joining player
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getScoreboardManager().updatePlayerScoreboard(player);
+            // Update all other players' scoreboards to reflect new online count
+            plugin.getScoreboardManager().updateAllScoreboards();
+        }, 1L); // Small delay to ensure player is fully loaded
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+
+        // Remove player from any sessions they might be in
+        var sessionManager = plugin.getSessionManager();
+        var session = sessionManager.getPlayerSession(player.getUniqueId());
+        if (session != null) {
+            session.removePlayer(player.getUniqueId());
+
+            // Check if session should end
+            if (session.shouldEnd()) {
+                session.endGameWithWinner();
+            }
+        }
+
+        // Update all remaining players' scoreboards to reflect new online count
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getScoreboardManager().updateAllScoreboards();
+        }, 1L);
     }
 
     @EventHandler
@@ -83,12 +119,28 @@ public class GameEventListener implements Listener {
                 player.teleport(globalSpawn);
                 session.clearPlayerInventoryAndReset(player);
                 player.sendMessage(Component.text("§cYou have been eliminated and teleported to spawn."));
+
+                // Update scoreboards for all players in the session
+                updateSessionScoreboards(session);
+
+                // Update the eliminated player's scoreboard
+                plugin.getScoreboardManager().updatePlayerScoreboard(player);
             });
         }
 
         // Check if session should end
         if (session.shouldEnd()) {
             session.endGameWithWinner();
+        }
+    }
+
+    private void updateSessionScoreboards(Session session) {
+        // Update scoreboards for all players in the session
+        for (UUID playerId : session.getActivePlayers()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                plugin.getScoreboardManager().updatePlayerScoreboard(player);
+            }
         }
     }
 }

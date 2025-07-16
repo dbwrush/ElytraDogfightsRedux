@@ -22,6 +22,7 @@ public class ConfigManager {
     private Location globalSpawn;
     private final SessionManager sessionManager;
     private int countdownDuration = 10; // Default 10 seconds
+    private String serverName = "ElytraDogfights"; // Default server name
 
     public ConfigManager(ElytraDogfightsRedux plugin) {
         this.plugin = plugin;
@@ -73,12 +74,16 @@ public class ConfigManager {
         
         // Load countdown duration
         countdownDuration = config.getInt("countdownDuration", 10);
+
+        // Load server name
+        serverName = config.getString("serverName", "ElytraDogfights");
     }
 
     public void saveConfig() {
         config.set("maps", maps);
         config.set("globalSpawn", globalSpawn);
         config.set("countdownDuration", countdownDuration);
+        config.set("serverName", serverName);
         try {
             config.save(configFile);
         } catch (IOException e) {
@@ -129,6 +134,15 @@ public class ConfigManager {
     public void setCountdownDuration(int duration) {
         this.countdownDuration = duration;
         sessionManager.setCountdownDuration(duration);
+        saveConfig();
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
         saveConfig();
     }
 

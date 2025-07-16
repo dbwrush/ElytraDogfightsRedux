@@ -79,6 +79,11 @@ public class Session {
             startCountdown();
         }
 
+        // Update scoreboards for all players in the session
+        if (added) {
+            updateSessionScoreboards();
+        }
+
         return added;
     }
 
@@ -91,7 +96,15 @@ public class Session {
             cancelCountdown();
         }
 
+        // Update scoreboards for all players in the session
+        if (removed) {
+            updateSessionScoreboards();
+        }
+
         return removed;
+        // Update scoreboards for all players in the session
+        updateSessionScoreboards();
+
     }
 
     private void startCountdown() {
@@ -107,6 +120,9 @@ public class Session {
             @Override
             public void run() {
                 startGame();
+
+        // Update scoreboards for all players in the session
+        updateSessionScoreboards();
             }
         }.runTaskLater(getPlugin(), countdownDuration * 20L);
     }
@@ -125,6 +141,9 @@ public class Session {
         if (sessionManager != null) {
             sessionManager.announceToNonActivePlayers(message);
         }
+
+        // Update scoreboards for all players in the session
+        updateSessionScoreboards();
     }
 
     public void startGame() {
@@ -481,6 +500,32 @@ public class Session {
             meta.setPower(1);
             firework.setFireworkMeta(meta);
         });
+
+        // Update scoreboards for all original players
+        updateSessionScoreboards();
+    }
+
+    private void updateSessionScoreboards() {
+        org.bukkit.plugin.Plugin plugin = getPlugin();
+        if (plugin instanceof net.sudologic.elytraDogfightsRedux.ElytraDogfightsRedux) {
+            net.sudologic.elytraDogfightsRedux.ElytraDogfightsRedux dogfightsPlugin =
+                (net.sudologic.elytraDogfightsRedux.ElytraDogfightsRedux) plugin;
+
+            // Update scoreboards for all players in the session
+            for (UUID playerId : queuedPlayers) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null) {
+                    dogfightsPlugin.getScoreboardManager().updatePlayerScoreboard(player);
+                }
+            }
+
+            for (UUID playerId : activePlayers) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null) {
+                    dogfightsPlugin.getScoreboardManager().updatePlayerScoreboard(player);
+                }
+            }
+        }
     }
 
     private org.bukkit.plugin.Plugin getPlugin() {
