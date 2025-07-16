@@ -12,6 +12,12 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.GameMode;
 
 import java.util.*;
 
@@ -200,11 +206,129 @@ public class Session {
         Location spawnLocation = map.getSpawnPoint(teamIndex);
         if (spawnLocation != null) {
             player.teleport(spawnLocation);
+
+            // Setup player inventory and equipment
+            setupPlayerInventory(player, teamIndex);
+
             String teamMessage = getTeamMessage(teamIndex);
             player.sendMessage(Component.text("§a" + teamMessage));
         } else {
             player.sendMessage(Component.text("§cError: Spawn point not configured for this map."));
         }
+    }
+
+    private void setupPlayerInventory(Player player, int teamIndex) {
+        // Clear inventory and set game mode
+        player.getInventory().clear();
+        player.setGameMode(GameMode.SURVIVAL);
+
+        // Set health and food levels
+        player.setHealth(20.0);
+        player.setFoodLevel(20);
+        player.setSaturation(20.0f);
+
+        // Stop gliding/swimming
+        player.setGliding(false);
+        player.setSwimming(false);
+
+        // Get team color for armor dyeing
+        Color teamColor = getTeamColor(teamIndex);
+
+        // Create leather armor with team color
+        ItemStack helmet = createLeatherArmor(Material.LEATHER_HELMET, teamColor);
+        ItemStack boots = createLeatherArmor(Material.LEATHER_BOOTS, teamColor);
+        ItemStack leggings = createLeatherArmor(Material.LEATHER_LEGGINGS, teamColor);
+
+        // Create elytra
+        ItemStack elytra = new ItemStack(Material.ELYTRA);
+        ItemMeta elytraMeta = elytra.getItemMeta();
+        elytraMeta.setUnbreakable(true);
+        elytra.setItemMeta(elytraMeta);
+
+        // Create bow with infinity enchantment
+        ItemStack bow = new ItemStack(Material.BOW);
+        ItemMeta bowMeta = bow.getItemMeta();
+        bowMeta.addEnchant(Enchantment.INFINITY, 1, true);
+        bowMeta.setUnbreakable(true);
+        bow.setItemMeta(bowMeta);
+
+        // Create single arrow
+        ItemStack arrow = new ItemStack(Material.ARROW, 1);
+
+        // Create wooden sword with knockback
+        ItemStack sword = new ItemStack(Material.WOODEN_SWORD);
+        ItemMeta swordMeta = sword.getItemMeta();
+        swordMeta.addEnchant(Enchantment.KNOCKBACK, 1, true);
+        swordMeta.setUnbreakable(true);
+        sword.setItemMeta(swordMeta);
+
+        // Equip armor
+        player.getInventory().setHelmet(helmet);
+        player.getInventory().setChestplate(elytra);
+        player.getInventory().setLeggings(leggings);
+        player.getInventory().setBoots(boots);
+
+        // Add items to inventory
+        player.getInventory().addItem(bow);
+        player.getInventory().addItem(sword);
+        player.getInventory().addItem(arrow);
+
+        // Update inventory
+        player.updateInventory();
+    }
+
+    private ItemStack createLeatherArmor(Material material, Color color) {
+        ItemStack armor = new ItemStack(material);
+        LeatherArmorMeta meta = (LeatherArmorMeta) armor.getItemMeta();
+        meta.setColor(color);
+        meta.setUnbreakable(true);
+        armor.setItemMeta(meta);
+        return armor;
+    }
+
+    private Color getTeamColor(int teamIndex) {
+        // Return white for free-for-all
+        if (map.getTeamConfig() == TeamConfiguration.FREE_FOR_ALL) {
+            return Color.WHITE;
+        }
+
+        // Assign random colors for teams
+        Color[] teamColors = getRandomTeamColors();
+        return teamColors[teamIndex % teamColors.length];
+    }
+
+    private Color[] getRandomTeamColors() {
+        List<Color> availableColors = Arrays.asList(
+            Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW,
+            Color.PURPLE, Color.ORANGE, Color.LIME, Color.AQUA,
+            Color.FUCHSIA, Color.NAVY, Color.MAROON, Color.TEAL
+        );
+
+        Collections.shuffle(availableColors);
+
+        int teamsNeeded = map.getTeamConfig() == TeamConfiguration.THREE_TEAMS ? 3 : 2;
+        Color[] teamColors = new Color[teamsNeeded];
+
+        for (int i = 0; i < teamsNeeded; i++) {
+            teamColors[i] = availableColors.get(i);
+        }
+
+        return teamColors;
+    }
+
+    public void clearPlayerInventoryAndReset(Player player) {
+        // Clear inventory
+        player.getInventory().clear();
+
+        // Reset player state
+        player.setGliding(false);
+        player.setSwimming(false);
+        player.setHealth(20.0);
+        player.setFoodLevel(20);
+        player.setSaturation(20.0f);
+
+        // Update inventory
+        player.updateInventory();
     }
 
     private String getTeamMessage(int teamIndex) {
@@ -313,6 +437,7 @@ public class Session {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null) {
                     player.teleport(globalSpawn);
+                    clearPlayerInventoryAndReset(player);
                 }
             }
         }
